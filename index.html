@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Enzo Mari redux</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #fafafa;
+        }
+
+        .credit {
+            font: 12px/1.4 system-ui, sans-serif;
+            color: #666;
+            padding: 8px 12px;
+        }
+
+        .credit a {
+            color: #333;
+        }
+
+        .tile {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .tile img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            cursor: pointer;
+        }
+
+        .tile img:hover {
+            filter: hue-rotate(90deg);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="credit">This website is based on the design of the <a href="https://enzomari.com/">Enzo Mari archive</a> by <a href="https://jon-l.com/">Jon Lucas</a>.</div>
+
+    <script>
+        // Your image batch (paths under ./images) — 47 files from your set
+        var imagePaths = [
+            "images/2562284278685941358.jpg",
+            "images/25FCEC1B-86DE-4294-9002-0A5034E66020.JPG",
+            "images/3233443802319281149.jpg",
+            "images/603B4A0D-8231-4B81-A725-E43CAAACA32A%202.jpg",
+            "images/6718829032717906727.jpg",
+            "images/6CE1C35E-C1F9-4DA9-9E04-581A4C41FBD0.JPG",
+            "images/7512106564098660126.jpg",
+            "images/924B3102-56C3-4B12-8D15-6F5104385426.JPG",
+            "images/B68B226C-4C70-4E2B-B020-4BDE1A33CBF0.JPG",
+            "images/DEB96A9D-1CF3-4A63-AF4F-DB62E48BC560.JPG",
+            "images/EDCEEBCE-1672-49D6-8B33-867A69F5683B.JPG",
+            "images/IMG_0128.JPG",
+            "images/IMG_0291.JPG",
+            "images/IMG_0307.JPG",
+            "images/IMG_0370.JPG",
+            "images/IMG_0405.JPG",
+            "images/IMG_0447.JPG",
+            "images/IMG_1771.JPG",
+            "images/IMG_2384.JPG",
+            "images/IMG_2475.JPG",
+            "images/IMG_2528.JPG",
+            "images/IMG_2531.JPG",
+            "images/IMG_2578.JPG",
+            "images/IMG_2591.JPG",
+            "images/IMG_2614.JPG",
+            "images/IMG_2898.JPG",
+            "images/IMG_3381.JPG",
+            "images/IMG_5342.JPG",
+            "images/IMG_5525.JPG",
+            "images/IMG_5666.JPG",
+            "images/IMG_5675.JPG",
+            "images/IMG_5677.JPG",
+            "images/IMG_5687.JPG",
+            "images/IMG_5696.JPG",
+            "images/IMG_5702.JPG",
+            "images/IMG_5703.JPG",
+            "images/IMG_5760.JPG",
+            "images/IMG_5787.JPG",
+            "images/IMG_6431.PNG",
+            "images/IMG_6672.JPG",
+            "images/IMG_6678.JPG",
+            "images/IMG_6687.JPG",
+            "images/IMG_8263.JPG",
+            "images/IMG_8265.JPG",
+            "images/Resized_20250110_184414_1736552838240.jpeg",
+            "images/Resized_20260213_175937.jpeg",
+            "images/image000000%202.jpg"
+        ];
+
+        function random_image() {
+            return Math.floor(Math.random() * imagePaths.length);
+        }
+
+        function add_image() {
+            var new_wrap = document.createElement("div");
+            new_wrap.className = "tile";
+
+            var img = document.createElement("img");
+            img.src = imagePaths[random_image()];
+            img.alt = "";
+            img.decoding = "async";
+            new_wrap.appendChild(img);
+
+            var random_width = Math.floor(Math.random() * (300 - 100 + 1) + 100);
+            new_wrap.style.width = random_width + "px";
+
+            document.body.prepend(new_wrap);
+
+            new_wrap.addEventListener("click", add_image);
+        }
+
+        add_image();
+    </script>
+</body>
+
+</html>
