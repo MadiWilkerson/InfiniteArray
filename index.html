@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Fetch</title>
+    <link rel="preconnect" href="https://use.typekit.net" crossorigin>
+    <link rel="preconnect" href="https://p.typekit.net" crossorigin>
+    <link rel="stylesheet" href="https://use.typekit.net/kuk2ziw.css">
+    <link rel="preload" as="image" href="assets/field.png">
+    <link rel="preload" as="image" href="assets/tennisball.png">
     <meta name="theme-color" content="#3d7ab8">
     <style>
         * {
@@ -42,7 +47,11 @@
             display: flex;
             align-items: center;
             gap: 0.4em;
-            font: 800 2.25rem/1.1 "Segoe UI", system-ui, sans-serif;
+            font-family: "omnes-pro", "Segoe UI", system-ui, sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            font-style: normal;
+            line-height: 1.1;
             letter-spacing: 0.02em;
             color: #fff;
             text-shadow:
@@ -79,6 +88,7 @@
         .tile {
             position: absolute;
             pointer-events: auto;
+            transform-origin: 50% 50%;
         }
 
         .tile img {
@@ -86,8 +96,8 @@
             width: 100%;
             height: auto;
             max-width: 100%;
-            border-radius: 6px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+            border-radius: 4px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.22);
             transition: filter 0.2s ease;
         }
 
@@ -100,8 +110,8 @@
 <body>
     <header class="site-header">
         <h1 class="site-title">
-            <img class="logo-ball" src="assets/tennisball.png" width="48" height="48" alt="">
             <span>Fetch</span>
+            <img class="logo-ball" src="assets/tennisball.png" width="48" height="48" alt="" fetchpriority="high" decoding="async">
         </h1>
     </header>
 
@@ -109,6 +119,11 @@
 
     <script>
         var MAX_IMAGES = 20;
+        var MARGIN = 6;
+        var ROTATION_MIN = -18;
+        var ROTATION_MAX = 18;
+        var SKEW_X_MAX = 5;
+        var SKEW_Y_MAX = 3;
         var imagePaths = [
             "images/2562284278685941358.jpg",
             "images/25FCEC1B-86DE-4294-9002-0A5034E66020.JPG",
@@ -164,37 +179,106 @@
         var stage = document.getElementById("stage");
         var header = document.querySelector(".site-header");
 
+        function getTopMin() {
+            return (header && header.offsetHeight) ? header.offsetHeight + MARGIN : 56;
+        }
+
         function randomIndex() {
             return Math.floor(Math.random() * imagePaths.length);
         }
 
+        function randomDropTransform() {
+            var rot = ROTATION_MIN + Math.random() * (ROTATION_MAX - ROTATION_MIN);
+            var skx = (Math.random() * 2 - 1) * SKEW_X_MAX;
+            var sky = (Math.random() * 2 - 1) * SKEW_Y_MAX;
+            return "rotate(" + rot + "deg) skew(" + skx + "deg, " + sky + "deg)";
+        }
+
+        function parsePx(val) {
+            if (!val) return 0;
+            var n = parseFloat(val);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function clampTileToViewport(el) {
+            var topMin = getTopMin();
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
+            var k;
+            for (k = 0; k < 30; k++) {
+                var r = el.getBoundingClientRect();
+                var left = parsePx(el.style.left);
+                var top = parsePx(el.style.top);
+                var moved = false;
+                if (r.left < MARGIN) {
+                    el.style.left = (left + (MARGIN - r.left)) + "px";
+                    moved = true;
+                } else if (r.right > vw - MARGIN) {
+                    el.style.left = (left + (vw - MARGIN - r.right)) + "px";
+                    moved = true;
+                } else if (r.top < topMin) {
+                    el.style.top = (top + (topMin - r.top)) + "px";
+                    moved = true;
+                } else if (r.bottom > vh - MARGIN) {
+                    el.style.top = (top + (vh - MARGIN - r.bottom)) + "px";
+                    moved = true;
+                }
+                if (!moved) break;
+            }
+        }
+
         function placeTile(el, widthPx) {
+            var pad = MARGIN;
+            var topMin = getTopMin();
             var w = widthPx;
-            var pad = 8;
-            var hBottom = 24;
-            var topMin = (header && header.offsetHeight) ? header.offsetHeight + pad : 56;
-            var maxL = Math.max(0, window.innerWidth - w - pad);
-            var maxT = Math.max(0, window.innerHeight - hBottom - topMin);
-            var left = pad + Math.random() * maxL;
-            var top = topMin + Math.random() * maxT;
-            el.style.left = left + "px";
-            el.style.top = top + "px";
+            w = Math.min(w, window.innerWidth - 2 * pad);
+            if (w < 50) w = Math.min(50, window.innerWidth - 2 * pad);
             el.style.width = w + "px";
+            var maxL = Math.max(0, window.innerWidth - w - 2 * pad);
+            var estH = Math.min(480, w * 1.35);
+            var maxT = Math.max(0, window.innerHeight - topMin - estH - pad);
+            el.style.left = (pad + Math.random() * maxL) + "px";
+            el.style.top = (topMin + pad + Math.random() * maxT) + "px";
+        }
+
+        function pickWidthPx() {
+            var pad = MARGIN;
+            var slack = 48;
+            var maxW = Math.min(300, window.innerWidth - 2 * pad - slack);
+            if (maxW < 80) {
+                return Math.max(50, maxW);
+            }
+            return Math.floor(Math.random() * (maxW - 80 + 1) + 80);
         }
 
         function add_image() {
             var new_wrap = document.createElement("div");
             new_wrap.className = "tile";
+            new_wrap.style.transform = randomDropTransform();
 
             var img = document.createElement("img");
-            img.src = imagePaths[randomIndex()];
+            var src = imagePaths[randomIndex()];
+            img.src = src;
             img.alt = "Dog photo";
             img.decoding = "async";
+            img.fetchPriority = "high";
             new_wrap.appendChild(img);
 
-            var widthPx = Math.floor(Math.random() * (300 - 100 + 1) + 100);
+            var widthPx = pickWidthPx();
             new_wrap.style.zIndex = String(++zCounter);
             placeTile(new_wrap, widthPx);
+
+            function onImgReady() {
+                if (!new_wrap.parentNode) return;
+                clampTileToViewport(new_wrap);
+            }
+
+            if (img.complete && img.naturalWidth) {
+                onImgReady();
+            } else {
+                img.addEventListener("load", onImgReady, { once: true });
+                img.addEventListener("error", onImgReady, { once: true });
+            }
 
             if (tiles.length >= MAX_IMAGES) {
                 var removed = tiles.shift();
@@ -204,6 +288,9 @@
             }
             tiles.push(new_wrap);
             stage.appendChild(new_wrap);
+            requestAnimationFrame(function () {
+                clampTileToViewport(new_wrap);
+            });
         }
 
         document.addEventListener("click", add_image);
@@ -212,9 +299,37 @@
             for (var i = 0; i < tiles.length; i++) {
                 var t = tiles[i];
                 var w = parseInt(t.style.width, 10) || 120;
+                var cap = Math.min(300, window.innerWidth - 2 * MARGIN - 48);
+                w = Math.min(w, cap);
+                if (w < 50) w = Math.max(50, cap);
+                t.style.width = w + "px";
                 placeTile(t, w);
+                clampTileToViewport(t);
             }
         });
+
+        (function warmImageCache() {
+            function batch(start) {
+                var end = Math.min(start + 8, imagePaths.length);
+                for (var p = start; p < end; p++) {
+                    var pre = new Image();
+                    pre.decoding = "async";
+                    pre.src = imagePaths[p];
+                }
+                if (end < imagePaths.length) {
+                    if (window.requestIdleCallback) {
+                        requestIdleCallback(function () { batch(end); });
+                    } else {
+                        setTimeout(function () { batch(end); }, 32);
+                    }
+                }
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", function () { batch(0); });
+            } else {
+                setTimeout(function () { batch(0); }, 0);
+            }
+        }());
     </script>
 </body>
 
