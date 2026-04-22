@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Fetch</title>
+    <title>FETCH</title>
     <link rel="preconnect" href="https://use.typekit.net" crossorigin>
     <link rel="preconnect" href="https://p.typekit.net" crossorigin>
     <link rel="stylesheet" href="https://use.typekit.net/kuk2ziw.css">
@@ -52,7 +52,8 @@
             font-weight: 700;
             font-style: normal;
             line-height: 1.1;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
             color: #fff;
             text-shadow:
                 0 1px 0 rgba(0,0,0,0.25),
@@ -122,8 +123,8 @@
         var MARGIN = 6;
         var ROTATION_MIN = -18;
         var ROTATION_MAX = 18;
-        var SKEW_X_MAX = 5;
-        var SKEW_Y_MAX = 3;
+        // Paths currently visible (no duplicate images on screen at once)
+        var inUse = {};
         var imagePaths = [
             "images/2562284278685941358.jpg",
             "images/25FCEC1B-86DE-4294-9002-0A5034E66020.JPG",
@@ -183,15 +184,24 @@
             return (header && header.offsetHeight) ? header.offsetHeight + MARGIN : 56;
         }
 
-        function randomIndex() {
-            return Math.floor(Math.random() * imagePaths.length);
+        function pickUnusedSrc() {
+            var pool = [];
+            var n = imagePaths.length;
+            for (var i = 0; i < n; i++) {
+                var p = imagePaths[i];
+                if (!inUse[p]) {
+                    pool.push(p);
+                }
+            }
+            if (pool.length === 0) {
+                return null;
+            }
+            return pool[Math.floor(Math.random() * pool.length)];
         }
 
         function randomDropTransform() {
             var rot = ROTATION_MIN + Math.random() * (ROTATION_MAX - ROTATION_MIN);
-            var skx = (Math.random() * 2 - 1) * SKEW_X_MAX;
-            var sky = (Math.random() * 2 - 1) * SKEW_Y_MAX;
-            return "rotate(" + rot + "deg) skew(" + skx + "deg, " + sky + "deg)";
+            return "rotate(" + rot + "deg)";
         }
 
         function parsePx(val) {
@@ -252,12 +262,30 @@
         }
 
         function add_image() {
+            if (tiles.length >= MAX_IMAGES) {
+                var rem = tiles.shift();
+                if (rem) {
+                    if (rem.dataset.photo) {
+                        delete inUse[rem.dataset.photo];
+                    }
+                    if (rem.parentNode) {
+                        rem.remove();
+                    }
+                }
+            }
+
+            var src = pickUnusedSrc();
+            if (!src) {
+                return;
+            }
+            inUse[src] = true;
+
             var new_wrap = document.createElement("div");
             new_wrap.className = "tile";
+            new_wrap.dataset.photo = src;
             new_wrap.style.transform = randomDropTransform();
 
             var img = document.createElement("img");
-            var src = imagePaths[randomIndex()];
             img.src = src;
             img.alt = "Dog photo";
             img.decoding = "async";
@@ -280,12 +308,6 @@
                 img.addEventListener("error", onImgReady, { once: true });
             }
 
-            if (tiles.length >= MAX_IMAGES) {
-                var removed = tiles.shift();
-                if (removed && removed.parentNode) {
-                    removed.remove();
-                }
-            }
             tiles.push(new_wrap);
             stage.appendChild(new_wrap);
             requestAnimationFrame(function () {
