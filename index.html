@@ -5,26 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Enzo Mari redux</title>
+    <title>Fetch</title>
+    <meta name="theme-color" content="#e8d5b7">
     <style>
         * {
             box-sizing: border-box;
         }
 
+        html, body {
+            height: 100%;
+        }
+
         body {
             margin: 0;
-            min-height: 100vh;
-            background: #fafafa;
-        }
-
-        .credit {
-            font: 12px/1.4 system-ui, sans-serif;
-            color: #666;
-            padding: 8px 12px;
-        }
-
-        .credit a {
-            color: #333;
+            min-height: 100%;
+            background: #f4efe6;
+            cursor: pointer;
         }
 
         .tile {
@@ -37,20 +33,18 @@
             width: 100%;
             height: auto;
             max-width: 100%;
-            cursor: pointer;
+            transition: filter 0.2s ease;
         }
 
         .tile img:hover {
-            filter: hue-rotate(90deg);
+            filter: grayscale(100%);
         }
     </style>
 </head>
 
 <body>
-    <div class="credit">This website is based on the design of the <a href="https://enzomari.com/">Enzo Mari archive</a> by <a href="https://jon-l.com/">Jon Lucas</a>.</div>
-
     <script>
-        // Your image batch (paths under ./images) — 47 files from your set
+        var MAX_IMAGES = 20;
         var imagePaths = [
             "images/2562284278685941358.jpg",
             "images/25FCEC1B-86DE-4294-9002-0A5034E66020.JPG",
@@ -101,7 +95,9 @@
             "images/image000000%202.jpg"
         ];
 
-        function random_image() {
+        var tiles = [];
+
+        function randomIndex() {
             return Math.floor(Math.random() * imagePaths.length);
         }
 
@@ -110,20 +106,25 @@
             new_wrap.className = "tile";
 
             var img = document.createElement("img");
-            img.src = imagePaths[random_image()];
-            img.alt = "";
+            img.src = imagePaths[randomIndex()];
+            img.alt = "Dog photo";
             img.decoding = "async";
             new_wrap.appendChild(img);
 
             var random_width = Math.floor(Math.random() * (300 - 100 + 1) + 100);
             new_wrap.style.width = random_width + "px";
 
+            if (tiles.length >= MAX_IMAGES) {
+                var removed = tiles.shift();
+                if (removed && removed.parentNode) {
+                    removed.remove();
+                }
+            }
+            tiles.push(new_wrap);
             document.body.prepend(new_wrap);
-
-            new_wrap.addEventListener("click", add_image);
         }
 
-        add_image();
+        document.addEventListener("click", add_image);
     </script>
 </body>
 
