@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Fetch</title>
-    <meta name="theme-color" content="#e8d5b7">
+    <meta name="theme-color" content="#3d7ab8">
     <style>
         * {
             box-sizing: border-box;
@@ -19,13 +19,66 @@
         body {
             margin: 0;
             min-height: 100%;
-            background: #f4efe6;
             cursor: pointer;
+            position: relative;
+            background: #3d7ab8 url("assets/field.png") no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .site-header {
+            position: relative;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35em;
+            padding: 0.65rem 1rem 0.5rem;
+            pointer-events: none;
+        }
+
+        .site-title {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.4em;
+            font: 800 2.25rem/1.1 "Segoe UI", system-ui, sans-serif;
+            letter-spacing: 0.02em;
+            color: #fff;
+            text-shadow:
+                0 1px 0 rgba(0,0,0,0.25),
+                0 0 20px rgba(0,0,0,0.35),
+                0 0 1px #000;
+        }
+
+        .logo-ball {
+            width: 2.2rem;
+            height: 2.2rem;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+        }
+
+        @media (min-width: 480px) {
+            .site-title {
+                font-size: 2.75rem;
+            }
+            .logo-ball {
+                width: 2.6rem;
+                height: 2.6rem;
+            }
+        }
+
+        #stage {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .tile {
-            display: inline-block;
-            vertical-align: top;
+            position: absolute;
+            pointer-events: auto;
         }
 
         .tile img {
@@ -33,6 +86,8 @@
             width: 100%;
             height: auto;
             max-width: 100%;
+            border-radius: 6px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
             transition: filter 0.2s ease;
         }
 
@@ -43,6 +98,15 @@
 </head>
 
 <body>
+    <header class="site-header">
+        <h1 class="site-title">
+            <img class="logo-ball" src="assets/tennisball.png" width="48" height="48" alt="">
+            <span>Fetch</span>
+        </h1>
+    </header>
+
+    <div id="stage" aria-hidden="true"></div>
+
     <script>
         var MAX_IMAGES = 20;
         var imagePaths = [
@@ -96,9 +160,26 @@
         ];
 
         var tiles = [];
+        var zCounter = 1;
+        var stage = document.getElementById("stage");
+        var header = document.querySelector(".site-header");
 
         function randomIndex() {
             return Math.floor(Math.random() * imagePaths.length);
+        }
+
+        function placeTile(el, widthPx) {
+            var w = widthPx;
+            var pad = 8;
+            var hBottom = 24;
+            var topMin = (header && header.offsetHeight) ? header.offsetHeight + pad : 56;
+            var maxL = Math.max(0, window.innerWidth - w - pad);
+            var maxT = Math.max(0, window.innerHeight - hBottom - topMin);
+            var left = pad + Math.random() * maxL;
+            var top = topMin + Math.random() * maxT;
+            el.style.left = left + "px";
+            el.style.top = top + "px";
+            el.style.width = w + "px";
         }
 
         function add_image() {
@@ -111,8 +192,9 @@
             img.decoding = "async";
             new_wrap.appendChild(img);
 
-            var random_width = Math.floor(Math.random() * (300 - 100 + 1) + 100);
-            new_wrap.style.width = random_width + "px";
+            var widthPx = Math.floor(Math.random() * (300 - 100 + 1) + 100);
+            new_wrap.style.zIndex = String(++zCounter);
+            placeTile(new_wrap, widthPx);
 
             if (tiles.length >= MAX_IMAGES) {
                 var removed = tiles.shift();
@@ -121,10 +203,18 @@
                 }
             }
             tiles.push(new_wrap);
-            document.body.prepend(new_wrap);
+            stage.appendChild(new_wrap);
         }
 
         document.addEventListener("click", add_image);
+
+        window.addEventListener("resize", function () {
+            for (var i = 0; i < tiles.length; i++) {
+                var t = tiles[i];
+                var w = parseInt(t.style.width, 10) || 120;
+                placeTile(t, w);
+            }
+        });
     </script>
 </body>
 
